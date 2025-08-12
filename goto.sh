@@ -35,9 +35,9 @@ goto() {
         return 1
     fi
 
-    _search_dir="${1:-}"
+    local _search_dir="${1:-}"
     echo "Looking for ${_search_dir}..."
-    _selected_dir=""
+    local _selected_dir=""
 
     __goto_find_dirs() {
         find -L "${_GOTO_DIR}" -maxdepth "${_GOTO_MAX_DEPTH:-1}" \
@@ -63,7 +63,6 @@ goto() {
                 # Exactly one match - go there directly
                 _selected_dir=$(echo "${_matches[*]}" | head -n1)
                 echo "Found: ${_selected_dir#$_GOTO_DIR/}"
-                cd "${_selected_dir}" || return 1
                 ;;
             *)
                 # Multiple matches - show selector
@@ -120,10 +119,10 @@ goto() {
         export _selected_dir
     }
 
-    # __goto_change_dir() {
-    #     echo "Going to '${_selected_dir}'..."
-    #     cd "${_selected_dir}" || return ${__CODE_NO_DIR_FOUND}
-    # } 
+    __goto_change_dir() {
+        echo "Going to '${_selected_dir}'..."
+        cd "${_selected_dir}" || return ${__CODE_NO_DIR_FOUND}
+    } 
 
     # if [ "${_GOTO_AUTOSELECT_SINGLE_RESULT}" = "1" ] && [ "${#_matches[@]}" = "1" ]; then
     #     _selected_dir=${_matches[0]}
@@ -150,7 +149,22 @@ goto() {
 # Function to install goto into the current shell's resource file
 __goto_install() {
     local rc_file="$1"
-    local readonly current_file="$(readlink -f "${BASH_SOURCE[0]}")"
+    local readonly install_dir="${_GOTO_CONFIG_DIR}"
+    local readonly script_path="${install_dir}/goto.sh"
+
+    # Ensure the install directory exists
+    mkdir -p "${install_dir}" || {
+        echo "Error: Could not create installation directory ${install_dir}." >&2
+        return 1
+    }
+
+    # Copy the script itself to the installation directory.
+    # BASH_SOURCE[0] gives the path to the script being executed.
+    cp "${BASH_SOURCE[0]}" "${script_path}" || {
+        echo "Error: Could not copy script to ${script_path}." >&2
+        return 1
+    }
+    echo "✅ Script installed to ${script_path}"
 
     if [ -z "$rc_file" ]; then
         case "${SHELL}" in
@@ -162,20 +176,26 @@ __goto_install() {
         esac
     fi
     if [ -z "$rc_file" ]; then
-        echo "Error: No resource file specified or detected."
+        echo "Error: No resource file specified or detected." >&2
         return 1
     fi
     if [ ! -f "$rc_file" ]; then
-        echo "Error: Resource file '$rc_file' does not exist."
-        return 1
+        # Attempt to create it if it doesn't exist
+        touch "$rc_file" || {
+            echo "Error: Resource file '$rc_file' does not exist and could not be created." >&2
+            return 1
+        }
     fi
-    if ! grep -Fq ". \"${current_file}\"" "$rc_file"; then
+
+    # Add the sourcing line to the rc file if it's not already there.
+    if ! grep -Fq ". \"${script_path}\"" "$rc_file"; then
+        echo "" >> "$rc_file"
         echo "# >>> GOTO-MY-DIRECTORY initialize >>>" >> "$rc_file"
-        echo ". \"${current_file}\"" >> "$rc_file"
+        echo ". \"${script_path}\"" >> "$rc_file"
         echo "# <<< GOTO-MY-DIRECTORY initialize <<<" >> "$rc_file"
-        echo "✅ Added to $rc_file"
+        echo "✅ Added source line to $rc_file"
     else
-        echo "ℹ️ Already present in $rc_file"
+        echo "ℹ️ Source line already present in $rc_file"
     fi
 }
 
