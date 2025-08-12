@@ -212,31 +212,29 @@ __goto_test() {
     echo "  $ goto.sh --install /path/to/your/rcfile"
     echo "And use it:"
     echo "  $ goto mydir"
-    __goto_full "${@:-}"
+    goto "${@:-}"
 }
 
-# Main install command with optional path argument
-if [ "$(basename "$0")" = "goto.sh" ]; then
-    if [ "$1" = "--install" ]; then
-        if [ -n "$2" ]; then
-            __goto_install "$2"
-        else
-            __goto_install
-        fi
+# Main logic: Decide what to do based on arguments and execution context.
+case "${1:-}" in
+    --install)
+        __goto_install "${2:-}"
         exit 0
-    fi
-    if [ "$1" = "--config" ]; then
+        ;;
+    --config)
         __goto_config
         exit 0
-    fi
-fi
+        ;;
+esac
 
+# If not installing or configuring, source the config file for the goto function.
 source "${_GOTO_CONFIG_FILE}" 2>/dev/null || {
-        echo "Config file not found at ${_GOTO_CONFIG_FILE}. Please run 'goto.sh --config' to create it."
-        exit ${__CODE_ERROR}
-    }
+    echo "Config file not found at ${_GOTO_CONFIG_FILE}. Please run 'goto.sh --config' to create it." >&2
+    # Exit gracefully whether sourced or executed
+    return 1 2>/dev/null || exit 1
+}
 
-if [ "${BASH_SOURCE[0]:-}" = "$0" ] || [ "${ZSH_EVAL_CONTEXT:-}" = 'toplevel' ]; then
-    # Run testing mode when the file is executed directly
+# If the script is executed directly (not sourced) and no flags were passed, run the test function.
+if [ "${BASH_SOURCE[0]:-}" = "$0" ] && [ -z "${ZSH_EVAL_CONTEXT:-}" ]; then
     __goto_test "${@}"
 fi
