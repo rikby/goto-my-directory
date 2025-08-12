@@ -18,19 +18,20 @@
 
 ## Installation
 
-1.  Clone this repository or download the `goto.sh` script.
-2.  Make the script executable:
-    ```sh
-    chmod +x goto.sh
-    ```
-3.  Run the installer. This will add a line to your shell's configuration file (e.g., `.bashrc`, `.zshrc`).
-    ```sh
-    ./goto.sh --install
-    ```
-4.  Restart your shell or source your configuration file to apply the changes:
-    ```sh
-    source ~/.bashrc  # Or ~/.zshrc, etc.
-    ```
+You can install `goto-my-directory` by cloning the repository and running the install script.
+
+```sh
+git clone https://github.com/rikby/goto-my-directory.git
+cd goto-my-directory
+chmod +x goto.sh
+./goto.sh --install
+```
+
+After installation, restart your shell or source your configuration file to apply the changes:
+
+```sh
+source ~/.bashrc  # Or ~/.zshrc, etc.
+```
 
 The script will automatically detect your shell and add itself to the correct configuration file. If you want to specify a different file, you can pass it as an argument:
 ```sh
