@@ -149,22 +149,10 @@ goto() {
 # Function to install goto into the current shell's resource file
 __goto_install() {
     local rc_file="$1"
-    local readonly install_dir="${_GOTO_CONFIG_DIR}"
-    local readonly script_path="${install_dir}/goto.sh"
+    local readonly script_path="${_GOTO_CONFIG_DIR}/goto.sh"
 
-    # Ensure the install directory exists
-    mkdir -p "${install_dir}" || {
-        echo "Error: Could not create installation directory ${install_dir}." >&2
-        return 1
-    }
-
-    # Copy the script itself to the installation directory.
-    # BASH_SOURCE[0] gives the path to the script being executed.
-    cp "${BASH_SOURCE[0]}" "${script_path}" || {
-        echo "Error: Could not copy script to ${script_path}." >&2
-        return 1
-    }
-    echo "✅ Script installed to ${script_path}"
+    # Create the default config file if it doesn't exist
+    __goto_create_default_config
 
     if [ -z "$rc_file" ]; then
         case "${SHELL}" in
@@ -199,24 +187,36 @@ __goto_install() {
     fi
 }
 
-__goto_config() {
-    if [ ! -f "${_GOTO_CONFIG_FILE}" ]; then 
-        echo "Creating config file at ${_GOTO_CONFIG_FILE}..."
-
+# Creates the default config file if it doesn't exist.
+__goto_create_default_config() {
+    if [ ! -f "${_GOTO_CONFIG_FILE}" ]; then
+        echo "Creating default config file at ${_GOTO_CONFIG_FILE}..."
         mkdir -p "${_GOTO_CONFIG_DIR}" || {
-            echo "Error: Could not create config directory ${_GOTO_CONFIG_DIR}." > /dev/stderr
-            return ${__CODE_ERROR}
+            echo "Error: Could not create config directory ${_GOTO_CONFIG_DIR}." >&2
+            return 1
         }
-        touch "${config_file}" && cat <<EOF > "${config_file}"
+        # Create the config file with default values
+        cat <<EOF > "${_GOTO_CONFIG_FILE}"
+# The top-level directory to search for your projects
 _GOTO_DIR=${HOME}/
-_GOTO_AUTOSELECT_SINGLE_RESULT=1
+
+# How deep to search for directories
 _GOTO_MAX_DEPTH=1
+
+# Automatically select the directory if it's the only match
+_GOTO_AUTOSELECT_SINGLE_RESULT=1
 EOF
     fi
+}
 
+__goto_config() {
+    # Ensure the config file exists, creating it if necessary.
+    __goto_create_default_config
+
+    # Open the config file in an editor
     nano "${_GOTO_CONFIG_FILE}" 2>/dev/null || vi "${_GOTO_CONFIG_FILE}" 2>/dev/null \
-        || echo "Please edit ${_GOTO_CONFIG_FILE} manually to set your preferences." > /dev/stderr && \
-            echo "Current settings:" && cat ${_GOTO_CONFIG_FILE}
+        || echo "Please edit ${_GOTO_CONFIG_FILE} manually to set your preferences." >&2 && \
+            echo "Current settings:" && cat "${_GOTO_CONFIG_FILE}"
 }
 
 

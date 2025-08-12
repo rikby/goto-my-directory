@@ -1,26 +1,28 @@
 #!/bin/sh
 set -e
 
-# The repository and the script to download
+# Define the installation directory and script path
+INSTALL_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/goto-my-directory"
+SCRIPT_PATH="${INSTALL_DIR}/goto.sh"
 REPO_URL="https://raw.githubusercontent.com/rikby/goto-my-directory/main/goto.sh"
-TMP_SCRIPT="/tmp/goto.sh"
 
-# Download the main goto.sh script
-echo "Downloading goto.sh from the repository..."
+# Ensure the installation directory exists
+echo "Creating installation directory at ${INSTALL_DIR}..."
+mkdir -p "${INSTALL_DIR}"
+
+# Download the main goto.sh script directly to its final destination
+echo "Downloading goto.sh to ${SCRIPT_PATH}..."
 if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "${REPO_URL}" -o "${TMP_SCRIPT}"
+    curl -fsSL "${REPO_URL}" -o "${SCRIPT_PATH}"
 elif command -v wget >/dev/null 2>&1; then
-    wget -qO "${TMP_SCRIPT}" "${REPO_URL}"
+    wget -qO "${SCRIPT_PATH}" "${REPO_URL}"
 else
     echo "Error: You need curl or wget to download the script." >&2
     exit 1
 fi
 
 # Make the downloaded script executable and run its installer
-chmod +x "${TMP_SCRIPT}"
-"${TMP_SCRIPT}" --install
-
-# Clean up the temporary file
-rm "${TMP_SCRIPT}"
+chmod +x "${SCRIPT_PATH}"
+"${SCRIPT_PATH}" --install
 
 echo "Installation complete. Please restart your shell or run 'source ~/.bashrc' (or equivalent)."
