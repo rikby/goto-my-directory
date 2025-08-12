@@ -18,24 +18,34 @@
 
 ## Installation
 
-You can install `goto-my-directory` by cloning the repository and running the install script.
+The recommended way to install is to use the installer script. This will download the main `goto.sh` script, install it to a standard location (`~/.config/goto-my-directory/goto.sh`), and configure your shell to use it.
+
+1.  **Download the installer:**
+    ```sh
+    # With curl
+    curl -L https://raw.githubusercontent.com/rikby/goto-my-directory/main/install.sh -o install.sh
+    
+    # Or with wget
+    wget https://raw.githubusercontent.com/rikby/goto-my-directory/main/install.sh
+    ```
+
+2.  **(Optional but Recommended)** Inspect the `install.sh` script to ensure it's safe.
+
+3.  **Run the installer:**
+    ```sh
+    sh install.sh
+    ```
+
+4.  **Restart your shell** or source your configuration file (e.g., `source ~/.bashrc`) to complete the installation.
+
+### Manual Installation
+
+Alternatively, you can clone the repository and run the installation manually.
 
 ```sh
 git clone https://github.com/rikby/goto-my-directory.git
 cd goto-my-directory
-chmod +x goto.sh
-./goto.sh --install
-```
-
-After installation, restart your shell or source your configuration file to apply the changes:
-
-```sh
-source ~/.bashrc  # Or ~/.zshrc, etc.
-```
-
-The script will automatically detect your shell and add itself to the correct configuration file. If you want to specify a different file, you can pass it as an argument:
-```sh
-./goto.sh --install /path/to/your/custom_rc_file
+sh goto.sh --install
 ```
 
 ## Usage
