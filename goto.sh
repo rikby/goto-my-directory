@@ -122,6 +122,15 @@ goto() {
     __goto_change_dir() {
         echo "Going to '${_selected_dir}'..."
         cd "${_selected_dir}" || return ${__CODE_NO_DIR_FOUND}
+        
+        # Call all plugin hooks after successful directory change
+        for func in $_GOTO_PLUGIN_HOOKS; do
+            # Strip leading/trailing whitespace from function name
+            func=$(echo "$func" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            if [ -n "$func" ] && type "$func" >/dev/null 2>&1; then
+                "$func" 2>/dev/null || true
+            fi
+        done
     } 
 
     # if [ "${_GOTO_AUTOSELECT_SINGLE_RESULT}" = "1" ] && [ "${#_matches[@]}" = "1" ]; then
@@ -174,6 +183,15 @@ __goto_install() {
                 echo "Error: Could not copy script to ${script_path}." >&2
                 return 1
             }
+            
+            # Copy plugins directory if it exists
+            local source_plugins_dir="$(dirname "$current_script")/plugins"
+            if [ -d "$source_plugins_dir" ]; then
+                echo "Copying plugins to ${_GOTO_CONFIG_DIR}/plugins/..."
+                cp -r "$source_plugins_dir" "${_GOTO_CONFIG_DIR}/" || {
+                    echo "Warning: Could not copy plugins directory." >&2
+                }
+            fi
         else
             echo "ℹ️ Script already exists at ${script_path}. Use --update-code (-u) to force update."
         fi
@@ -282,6 +300,14 @@ source "${_GOTO_CONFIG_FILE}" 2>/dev/null || {
     # Exit gracefully whether sourced or executed
     return 1 2>/dev/null || exit 1
 }
+
+# Initialize plugin hooks list
+_GOTO_PLUGIN_HOOKS=""
+
+# Load all plugins
+for plugin in "${_GOTO_CONFIG_DIR}/plugins"/*.plugin.sh; do
+    [ -f "$plugin" ] && source "$plugin"
+done
 
 # If the script is executed directly (not sourced) and no flags were passed, run the test function.
 if [ "$(__goto_current_file)" = "$0" ] && [ -z "${ZSH_EVAL_CONTEXT:-}" ]; then

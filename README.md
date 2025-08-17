@@ -9,6 +9,8 @@
 - **Fuzzy Finder Integration**: Uses `fzf` (if installed) for an enhanced, interactive filtering experience with directory previews.
 - **Fallback UI**: If `fzf` is not available, it provides a simple and clear numbered list for selection.
 - **Auto-Select**: If only one directory matches, `goto` navigates there instantly.
+- **Plugin System**: Extensible plugin architecture that automatically executes hooks after directory changes.
+- **Python Virtual Environment**: Auto-activates venv when entering Python project directories.
 - **Easy Installation**: A simple one-line command to set it up.
 - **Configurable**: Easily customize the search directory, search depth, and other settings.
 
@@ -18,25 +20,42 @@
 
 ## Installation
 
-The recommended way to install is to use the installer script. This will download the main `goto.sh` script, install it to a standard location (`~/.config/goto-my-directory/goto.sh`), and configure your shell to use it.
+The recommended way to install is to use the installer script. This will download `goto.sh`, all plugins, create configuration files, and set up your shell automatically.
 
-1.  **Download the installer:**
+### One-Line Installation
+
+```sh
+curl -L https://raw.githubusercontent.com/rikby/goto-my-directory/main/install.sh | sh
+```
+
+Or with wget:
+```sh
+wget -qO- https://raw.githubusercontent.com/rikby/goto-my-directory/main/install.sh | sh
+```
+
+This will:
+- Download `goto.sh` to `~/.config/goto-my-directory/`
+- Download all plugins (including venv-activate)
+- Create a default configuration file
+- Add the source line to your shell RC file
+- Set up everything needed to start using `goto`
+
+### Manual Installation Steps
+
+If you prefer to inspect before installing:
+
+1.  **Download and inspect the installer:**
     ```sh
-    # With curl
     curl -L https://raw.githubusercontent.com/rikby/goto-my-directory/main/install.sh -o install.sh
-    
-    # Or with wget
-    wget https://raw.githubusercontent.com/rikby/goto-my-directory/main/install.sh
+    cat install.sh  # Review the script
     ```
 
-2.  **(Optional but Recommended)** Inspect the `install.sh` script to ensure it's safe.
-
-3.  **Run the installer:**
+2.  **Run the installer:**
     ```sh
     sh install.sh
     ```
 
-4.  **Restart your shell** or source your configuration file (e.g., `source ~/.bashrc`) to complete the installation.
+3.  **Restart your shell** or source your configuration file (e.g., `source ~/.bashrc`) to complete the installation.
 
 ### Manual Installation
 
@@ -73,6 +92,22 @@ goto my-project
 ![fzf-demo](https://user-images.githubusercontent.com/junegunn/fzf/master/image/demo.gif)
 *(Demo shows general fzf usage, which this script integrates)*
 
+### Plugin Features
+
+When navigating to directories, `goto` automatically:
+- **Activates Python virtual environments** if `venv/`, `.venv/`, or `bin/activate` is present
+- **Executes custom plugins** for project-specific automation
+- **Provides extensible hooks** for additional functionality
+
+Example with virtual environment:
+```bash
+$ goto my-python-project
+Looking for my-python-project...
+Going to '/Users/username/projects/my-python-project'...
+✓ Python virtual environment activated successfully!
+(venv) $ 
+```
+
 ## Configuration
 
 To customize the behavior of `goto`, you can edit its configuration file.
@@ -102,4 +137,64 @@ _GOTO_MAX_DEPTH=2
 
 # Automatically select the directory if it's the only match
 _GOTO_AUTOSELECT_SINGLE_RESULT=1
+```
+
+## Plugin Development
+
+The plugin system allows you to extend `goto` with custom functionality that executes automatically after directory changes.
+
+### Creating a Plugin
+
+1. **Create the plugin file** in the `plugins/` directory:
+   ```bash
+   # plugins/my-plugin.plugin.sh
+   #!/bin/bash
+   
+   # Your plugin logic here
+   my_custom_function() {
+       echo "Hello from my plugin!"
+   }
+   
+   # Register the plugin hook
+   _GOTO_PLUGIN_HOOKS="$_GOTO_PLUGIN_HOOKS my_custom_function"
+   ```
+
+2. **Install/update** to copy plugins:
+   ```bash
+   ./goto.sh --update-code
+   ```
+
+3. **Reload** your shell:
+   ```bash
+   source ~/.zshrc  # or ~/.bashrc
+   ```
+
+### Plugin Guidelines
+
+- **Keep it fast**: Plugins run on every directory change, so avoid slow operations
+- **Read-only operations**: Don't modify files or install packages automatically  
+- **Handle errors gracefully**: Use `2>/dev/null || true` to prevent breaking goto
+- **Test thoroughly**: Ensure your plugin works across different environments
+
+### Plugin Examples
+
+**Git status display:**
+```bash
+__goto_plugin_git_status_after_cd() {
+    if [ -d ".git" ]; then
+        branch=$(git branch --show-current 2>/dev/null)
+        echo "📋 Git branch: $branch"
+    fi
+}
+```
+
+**Project info:**
+```bash
+__goto_plugin_project_info_after_cd() {
+    if [ -f "package.json" ]; then
+        echo "📦 Node.js project detected"
+    elif [ -f "requirements.txt" ]; then
+        echo "🐍 Python project detected"
+    fi
+}
 ```

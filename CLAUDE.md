@@ -11,6 +11,9 @@ This is a shell script-based directory navigation tool called "goto-my-directory
 - `goto.sh` - Main script containing all core functionality
 - `install.sh` - Standalone installer that downloads and installs the script
 - `bin/goto` - Binary wrapper that sources the main script and chooses between fzf/standard interfaces (it is useless here)
+- `plugins/` - Plugin directory containing extensible functionality
+  - `venv-activate.plugin.sh` - Auto-activates Python virtual environments
+  - `venv-activate.sh` - Standalone venv activation script
 - `ABOUT.md` - Brief project description
 - `README.md` - Comprehensive documentation
 
@@ -52,6 +55,23 @@ Since this is a shell script project, testing is done by:
 - **Required**: Standard POSIX shell utilities (`find`, `grep`, `cd`)
 - **Optional**: `fzf` for enhanced interactive experience
 
+## Plugin System
+
+The tool features an extensible plugin system that automatically executes hooks after successful directory changes.
+
+### Plugin Architecture
+- **Location**: `plugins/*.plugin.sh` files in repository, installed to `~/.config/goto-my-directory/plugins/`
+- **Auto-loading**: All `*.plugin.sh` files are sourced during shell initialization
+- **Hook registration**: Plugins register functions in `_GOTO_PLUGIN_HOOKS` variable
+- **Execution**: Hooks are called automatically after each successful `cd`
+- **Error handling**: Failed plugins don't break the goto command
+
+### Included Plugins
+- **venv-activate**: Automatically activates Python virtual environments when entering directories with `venv/`, `.venv/`, or `bin/activate`
+
+### Plugin Development
+Plugins should be fast, read-only operations since goto is used frequently. Avoid slow operations like package installation or network requests.
+
 ## Development Notes
 
 - The script is written in POSIX shell for maximum compatibility
@@ -59,3 +79,4 @@ Since this is a shell script project, testing is done by:
 - Handles both sourced and executed contexts
 - Supports multiple shell types (bash, zsh, fish, ksh, dash)
 - Error codes are defined as constants for consistent error handling
+- Plugin system uses whitespace-safe function name handling
