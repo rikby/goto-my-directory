@@ -34,10 +34,16 @@ goto() {
     readonly __CODE_ERROR=1
     readonly __CODE_SUCCESS=0
 
+    # Convert _GOTO_DIR to _GOTO_DIRS array for unified handling
+    if [ -z "${_GOTO_DIRS+x}" ]; then
+        # _GOTO_DIRS not set, use _GOTO_DIR
+        _GOTO_DIRS=("$_GOTO_DIR")
+    fi
+
     if [ -z "${1:-}" ]; then
         echo "Error: no directory name provided." > /dev/srderr
         echo "Usage: goto <partial_directory_name>"
-        echo "Lookup directory: ${_GOTO_DIR}"
+        echo "Lookup directories: ${_GOTO_DIRS[*]}"
         return 1
     fi
 
@@ -46,7 +52,7 @@ goto() {
     local _selected_dir=""
 
     __goto_find_dirs() {
-        find -L "${_GOTO_DIR}" -maxdepth "${_GOTO_MAX_DEPTH:-1}" \
+        find -L "${_GOTO_DIRS[@]}" -maxdepth "${_GOTO_MAX_DEPTH:-1}" \
             \( -type d -o -type l -exec test -d {} \; \) \
             -iname "*${_search_dir}*" -print 2>/dev/null | grep -v '^$'
     }
@@ -249,6 +255,9 @@ __goto_create_default_config() {
         cat <<EOF > "${_GOTO_CONFIG_FILE}"
 # The top-level directory to search for your projects
 _GOTO_DIR=${HOME}/
+
+# Alternative: Multiple search directories (takes precedence over _GOTO_DIR)
+# _GOTO_DIRS=("${HOME}/" "/opt/projects/" "/var/www/")
 
 # How deep to search for directories
 _GOTO_MAX_DEPTH=1
