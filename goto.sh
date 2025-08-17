@@ -146,6 +146,11 @@ goto() {
     __goto_change_dir || return $?
 }
 
+# Get the current script file path in a shell-agnostic way
+__goto_current_file() {
+  [ -n "${BASH_SOURCE[0]}" ] && echo ${BASH_SOURCE[0]} || echo "${(%):-%x}"
+}
+
 # Function to install goto into the current shell's resource file
 __goto_install() {
     local rc_file="$1"
@@ -277,12 +282,6 @@ source "${_GOTO_CONFIG_FILE}" 2>/dev/null || {
     # Exit gracefully whether sourced or executed
     return 1 2>/dev/null || exit 1
 }
-
-# Get the current script file path in a shell-agnostic way
-__goto_current_file() {
-  [ -n "${BASH_SOURCE[0]}" ] && echo ${BASH_SOURCE[0]} || echo "${(%):-%x}"
-}
-
 
 # If the script is executed directly (not sourced) and no flags were passed, run the test function.
 if [ "$(__goto_current_file)" = "$0" ] && [ -z "${ZSH_EVAL_CONTEXT:-}" ]; then
