@@ -4,8 +4,14 @@
 # shellcheck disable=SC3040
 #set -o pipefail
 
+# The top-level directory to search for your projects
 _GOTO_DIR="${_GOTO_DIR:-${HOME}/}"
+
+# How deep to search for directories
 _GOTO_MAX_DEPTH=1
+
+# Automatically select the directory if it's the only match, works only if fzf module is available
+# If fzf is not installed the script will a single directory automatically
 _GOTO_AUTOSELECT_SINGLE_RESULT=1
 
 _GOTO_CONFIG_DIR=${XDG_CONFIG_HOME:-${HOME}/.config}/goto-my-directory
@@ -47,7 +53,9 @@ goto() {
 
     _choice=0
     _matches=()
-    while IFS='' read -r line; do _matches+=("${line}"); done < <(__goto_find_dirs "${_search_dir}")
+    while IFS='' read -r line; do 
+        [ -n "$line" ] && _matches+=("${line}")
+    done < <(__goto_find_dirs "${_search_dir}")
 
 
     # __goto_base_* functions to match directory in basic approach
@@ -131,18 +139,17 @@ goto() {
                 "$func" 2>/dev/null || true
             fi
         done
-    } 
-
-    # if [ "${_GOTO_AUTOSELECT_SINGLE_RESULT}" = "1" ] && [ "${#_matches[@]}" = "1" ]; then
-    #     _selected_dir=${_matches[0]}
-    #     __goto_change_dir || return $?
-    #     return
-    # fi
+    }
 
     if command -v fzf >/dev/null 2>&1; then
-        while true; do
-            __goto_fzf_match && break || return $?
-        done
+        # If autoselect is enabled and only one match, skip fzf
+        if [ "${_GOTO_AUTOSELECT_SINGLE_RESULT}" = "1" ] && [ "${#_matches[@]}" = "1" ]; then
+            _selected_dir="${_matches[@]:0:1}" # cross-shell approach for bash and zsh
+        else
+            while true; do
+                __goto_fzf_match && break || return $?
+            done
+        fi
     else
         __goto_base_match || return $?
     fi
@@ -246,7 +253,8 @@ _GOTO_DIR=${HOME}/
 # How deep to search for directories
 _GOTO_MAX_DEPTH=1
 
-# Automatically select the directory if it's the only match
+# Automatically select the directory if it's the only match, works only if fzf module is available
+# If fzf is not installed the script will a single directory automatically
 _GOTO_AUTOSELECT_SINGLE_RESULT=1
 EOF
     fi
