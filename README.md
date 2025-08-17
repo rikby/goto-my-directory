@@ -129,8 +129,11 @@ To customize the behavior of `goto`, you can edit its configuration file.
 
 **Example Config (`~/.config/goto-my-directory/config.sh`):**
 ```sh
-# The top-level directory to search for your projects
+# Single directory search (traditional)
 _GOTO_DIR=${HOME}/dev/projects
+
+# Multiple directory search (takes precedence over _GOTO_DIR)
+# _GOTO_DIRS=("${HOME}/dev/projects" "/opt/work" "/var/www")
 
 # How deep to search for directories
 _GOTO_MAX_DEPTH=2
@@ -138,6 +141,26 @@ _GOTO_MAX_DEPTH=2
 # Automatically select the directory if it's the only match
 _GOTO_AUTOSELECT_SINGLE_RESULT=1
 ```
+
+### Multiple Directory Search
+
+You can configure `goto` to search across multiple directories simultaneously:
+
+```sh
+# Search across multiple project locations
+_GOTO_DIRS=("${HOME}/personal" "${HOME}/work" "/opt/projects" "/var/www")
+```
+
+When `_GOTO_DIRS` is defined, it takes precedence over `_GOTO_DIR`. This allows you to:
+- Search across work and personal project directories
+- Include system-wide project folders  
+- Search web server directories
+- Organize projects by client or type
+
+**Benefits:**
+- Single `goto` command searches all configured locations
+- No need to remember which directory contains which project
+- Backward compatible with existing `_GOTO_DIR` configurations
 
 ## Plugin Development
 

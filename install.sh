@@ -52,6 +52,9 @@ if [ ! -f "${CONFIG_FILE}" ]; then
 # The top-level directory to search for your projects
 _GOTO_DIR=\${HOME}/
 
+# Alternative: Multiple search directories (takes precedence over _GOTO_DIR)
+# _GOTO_DIRS=("\${HOME}/" "/opt/projects/" "/var/www/")
+
 # How deep to search for directories
 _GOTO_MAX_DEPTH=1
 

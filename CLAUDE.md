@@ -30,9 +30,15 @@ This is a shell script-based directory navigation tool called "goto-my-directory
 
 The script uses these configuration variables:
 - `_GOTO_DIR` - Root directory to search (default: `${HOME}/`)
+- `_GOTO_DIRS` - Array of multiple directories to search (takes precedence over `_GOTO_DIR`)
 - `_GOTO_MAX_DEPTH` - Search depth (default: 1)
 - `_GOTO_AUTOSELECT_SINGLE_RESULT` - Auto-select single matches (default: 1)
 - Config file: `~/.config/goto-my-directory/config.sh`
+
+### Multiple Directory Search
+- Use `_GOTO_DIRS=("${HOME}/" "/opt/projects/" "/var/www/")` to search multiple locations
+- If `_GOTO_DIRS` is defined, `_GOTO_DIR` is ignored
+- Maintains backward compatibility with existing `_GOTO_DIR` configurations
 
 ## Testing the Script
 
