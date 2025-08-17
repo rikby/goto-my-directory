@@ -149,10 +149,30 @@ goto() {
 # Function to install goto into the current shell's resource file
 __goto_install() {
     local rc_file="$1"
+    local force_copy="$2"
     local readonly script_path="${_GOTO_CONFIG_DIR}/goto.sh"
 
     # Create the default config file if it doesn't exist
     __goto_create_default_config
+
+    # Copy current script to config directory
+    # TODO: Add versioning to detect when script needs updating
+    local current_script="$(__goto_current_file)"
+    if [ "$current_script" != "$script_path" ] && [ -f "$current_script" ]; then
+        if [ "$force_copy" = "--force-copy" ] || [ ! -f "$script_path" ]; then
+            echo "Copying script to ${script_path}..."
+            mkdir -p "${_GOTO_CONFIG_DIR}" || {
+                echo "Error: Could not create config directory ${_GOTO_CONFIG_DIR}." >&2
+                return 1
+            }
+            cp "$current_script" "$script_path" || {
+                echo "Error: Could not copy script to ${script_path}." >&2
+                return 1
+            }
+        else
+            echo "ℹ️ Script already exists at ${script_path}. Use --update-code (-u) to force update."
+        fi
+    fi
 
     if [ -z "$rc_file" ]; then
         case "${SHELL}" in
@@ -241,6 +261,10 @@ case "${1:-}" in
         __goto_install "${2:-}"
         exit 0
         ;;
+    --update-code|-u)
+        __goto_install "${2:-}" --force-copy
+        exit 0
+        ;;
     --config)
         __goto_config
         exit 0
@@ -254,7 +278,13 @@ source "${_GOTO_CONFIG_FILE}" 2>/dev/null || {
     return 1 2>/dev/null || exit 1
 }
 
+# Get the current script file path in a shell-agnostic way
+__goto_current_file() {
+  [ -n "${BASH_SOURCE[0]}" ] && echo ${BASH_SOURCE[0]} || echo "${(%):-%x}"
+}
+
+
 # If the script is executed directly (not sourced) and no flags were passed, run the test function.
-if [ "${BASH_SOURCE[0]:-}" = "$0" ] && [ -z "${ZSH_EVAL_CONTEXT:-}" ]; then
+if [ "$(__goto_current_file)" = "$0" ] && [ -z "${ZSH_EVAL_CONTEXT:-}" ]; then
     __goto_test "${@}"
 fi

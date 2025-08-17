@@ -43,6 +43,7 @@ Since this is a shell script project, testing is done by:
 ## Installation Commands
 
 - `./goto.sh --install [rc_file]` - Install to shell RC file
+- `./goto.sh --update-code` or `./goto.sh -u [rc_file]` - Force update script file even if it exists
 - `./goto.sh --config` - Create/edit configuration file
 - `sh install.sh` - Use the dedicated installer script
 

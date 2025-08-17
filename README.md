@@ -48,6 +48,17 @@ cd goto-my-directory
 sh goto.sh --install
 ```
 
+### Updating the Script
+
+To update an existing installation with a newer version of the script:
+
+```sh
+# Force update the script file even if it already exists
+./goto.sh --update-code
+# or using the short option
+./goto.sh -u
+```
+
 ## Usage
 
 Once installed, use the `goto` command followed by a partial directory name:
