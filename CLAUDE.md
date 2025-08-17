@@ -10,7 +10,6 @@ This is a shell script-based directory navigation tool called "goto-my-directory
 
 - `goto.sh` - Main script containing all core functionality
 - `install.sh` - Standalone installer that downloads and installs the script
-- `bin/goto` - Binary wrapper that sources the main script and chooses between fzf/standard interfaces (it is useless here)
 - `plugins/` - Plugin directory containing extensible functionality
   - `venv-activate.plugin.sh` - Auto-activates Python virtual environments
   - `venv-activate.sh` - Standalone venv activation script
