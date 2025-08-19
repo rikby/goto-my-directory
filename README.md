@@ -221,3 +221,5 @@ __goto_plugin_project_info_after_cd() {
     fi
 }
 ```
+
+For comprehensive plugin development documentation, see [PLUGIN_DEVELOPMENT.md](PLUGIN_DEVELOPMENT.md).

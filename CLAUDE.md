@@ -77,6 +77,12 @@ The tool features an extensible plugin system that automatically executes hooks 
 ### Plugin Development
 Plugins should be fast, read-only operations since goto is used frequently. Avoid slow operations like package installation or network requests.
 
+See [PLUGIN_DEVELOPMENT.md](PLUGIN_DEVELOPMENT.md) for comprehensive plugin development documentation, including:
+- Quick start guide with examples
+- Performance guidelines and best practices
+- Plugin submission process for contributions
+- Testing procedures and checklists
+
 ## Development Notes
 
 - The script is written in POSIX shell for maximum compatibility
