@@ -59,9 +59,12 @@ goto() {
 
     _choice=0
     _matches=()
+    _temp_file=$(mktemp)
+    __goto_find_dirs "${_search_dir}" > "$_temp_file"
     while IFS='' read -r line; do 
         [ -n "$line" ] && _matches+=("${line}")
-    done < <(__goto_find_dirs "${_search_dir}")
+    done < "$_temp_file"
+    rm -f "$_temp_file"
 
 
     # __goto_base_* functions to match directory in basic approach
@@ -134,14 +137,29 @@ goto() {
     }
 
     __goto_change_dir() {
+        # Call all before_cd plugin hooks before changing directory
+        # Use word splitting to handle both bash and zsh correctly
+        echo "$_GOTO_PLUGIN_HOOKS" | tr ' ' '\n' | while read -r func; do
+            # Skip empty lines
+            [ -n "$func" ] || continue
+            # Strip leading/trailing whitespace from function name
+            func=$(echo "$func" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            if [ -n "$func" ] && echo "$func" | grep -q "_before_cd$" && type "$func" >/dev/null 2>&1; then
+                "$func" 2>/dev/null || true
+            fi
+        done
+        
         echo "Going to '${_selected_dir}'..."
         cd "${_selected_dir}" || return ${__CODE_NO_DIR_FOUND}
         
-        # Call all plugin hooks after successful directory change
-        for func in $_GOTO_PLUGIN_HOOKS; do
+        # Call all after_cd plugin hooks after successful directory change
+        # Use word splitting to handle both bash and zsh correctly
+        echo "$_GOTO_PLUGIN_HOOKS" | tr ' ' '\n' | while read -r func; do
+            # Skip empty lines
+            [ -n "$func" ] || continue
             # Strip leading/trailing whitespace from function name
             func=$(echo "$func" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-            if [ -n "$func" ] && type "$func" >/dev/null 2>&1; then
+            if [ -n "$func" ] && echo "$func" | grep -q "_after_cd$" && type "$func" >/dev/null 2>&1; then
                 "$func" 2>/dev/null || true
             fi
         done
@@ -327,6 +345,17 @@ for plugin in "${_GOTO_CONFIG_DIR}/plugins"/*.plugin.sh; do
 done
 
 # If the script is executed directly (not sourced) and no flags were passed, run the test function.
-if [ "$(__goto_current_file)" = "$0" ] && [ -z "${ZSH_EVAL_CONTEXT:-}" ]; then
-    __goto_test "${@}"
+# Check for direct execution in both bash and zsh
+if [ "$(__goto_current_file)" = "$0" ]; then
+    # In bash: BASH_SOURCE[0] equals $0 when executed directly
+    # In zsh: ZSH_EVAL_CONTEXT is unset when executed directly, contains "file" when sourced
+    if [ -z "${BASH_VERSION:-}" ]; then
+        # We're in zsh - check ZSH_EVAL_CONTEXT
+        if [ -z "${ZSH_EVAL_CONTEXT:-}" ] || ! echo "${ZSH_EVAL_CONTEXT}" | grep -q "file"; then
+            __goto_test "${@}"
+        fi
+    else
+        # We're in bash - already checked that $0 equals BASH_SOURCE[0]
+        __goto_test "${@}"
+    fi
 fi
