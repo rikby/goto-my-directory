@@ -40,12 +40,56 @@ goto() {
         _GOTO_DIRS=("$_GOTO_DIR")
     fi
 
-    if [ -z "${1:-}" ]; then
-        echo "Error: no directory name provided." > /dev/srderr
-        echo "Usage: goto <partial_directory_name>"
-        echo "Lookup directories: ${_GOTO_DIRS[*]}"
-        return 1
-    fi
+    show_help() {
+        cat <<EOF
+goto - Quick directory navigation tool
+
+Usage:
+  goto [OPTIONS] <partial_directory_name>
+
+Options:
+  -h, --help     Show this help message and exit
+  --install      Install goto to your shell's RC file
+  --update-code, -u  Force update script even if it exists
+  --config       Edit configuration file
+
+Description:
+  Navigate to directories by typing partial names. Searches configured
+  directories and presents matches for selection.
+
+Configuration:
+  The tool uses a config file at ~/.config/goto-my-directory/config.sh
+  where you can set search directories and options.
+
+  Key config variables:
+    _GOTO_DIRS              Array of directories to search
+    _GOTO_MAX_DEPTH         Maximum search depth
+    _GOTO_AUTOSELECT_SINGLE_RESULT  Auto-select single matches
+
+Plugins:
+  Supports plugins for extended functionality. See plugins/ directory
+  for examples and plugin development guide.
+
+Examples:
+  goto proj          # Search for directories matching "proj"
+  goto --config      # Edit configuration
+  goto --install     # Install to current shell
+
+For more information, see README.md
+EOF
+    }
+
+    # Handle help options and empty arguments
+    case "${1:-}" in
+        -h|--help)
+            show_help
+            return 0
+            ;;
+        "")
+            show_help
+            return 1
+            ;;
+    esac
 
     local _search_dir="${1:-}"
     echo "Looking for ${_search_dir}..."
@@ -205,7 +249,7 @@ __goto_install() {
     local current_script="$(__goto_current_file)"
     if [ "$current_script" != "$script_path" ] && [ -f "$current_script" ]; then
         if [ "$force_copy" = "--force-copy" ] || [ ! -f "$script_path" ]; then
-            echo "Copying script to ${script_path}..."
+            echo "✅ Copying script to ${script_path}..."
             mkdir -p "${_GOTO_CONFIG_DIR}" || {
                 echo "Error: Could not create config directory ${_GOTO_CONFIG_DIR}." >&2
                 return 1
@@ -218,7 +262,7 @@ __goto_install() {
             # Copy plugins directory if it exists
             local source_plugins_dir="$(dirname "$current_script")/plugins"
             if [ -d "$source_plugins_dir" ]; then
-                echo "Copying plugins to ${_GOTO_CONFIG_DIR}/plugins/..."
+                echo "✅ Copying plugins to ${_GOTO_CONFIG_DIR}/plugins/..."
                 cp -r "$source_plugins_dir" "${_GOTO_CONFIG_DIR}/" || {
                     echo "Warning: Could not copy plugins directory." >&2
                 }
