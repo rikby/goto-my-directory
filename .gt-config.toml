@@ -1,0 +1,5 @@
+[project]
+code = "GT"
+path = "docs/CRs"
+counterFile = ".gt-next"
+startNumber = 1
