@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #set -e
 #set -u
 # shellcheck disable=SC3040
@@ -161,17 +161,22 @@ EOF
     _choice=0
     _matches=()
     
-    # Use command substitution and newline separation
-    _found_dirs=$(__goto_find_dirs "${_search_dir}")
+    # Use a portable method to populate the array
+    _matches=()
+    __goto_find_dirs "${_search_dir}" | while IFS= read -r line; do
+        [ -n "$line" ] && _matches+=("$line")
+    done
     
-    # Convert to array using IFS
+    # The above creates a subshell, so we need to repopulate _matches
+    # Use a more portable approach with command substitution
+    _found_dirs=$(__goto_find_dirs "${_search_dir}")
     if [ -n "$_found_dirs" ]; then
-        # Save original IFS
+        # Use printf to handle newlines properly in both bash and zsh
         _old_ifs="$IFS"
         IFS=$'\n'
-        # shellcheck disable=SC2206
-        _matches=($_found_dirs)
-        # Restore IFS
+        set -f  # Disable pathname expansion
+        _matches=(${_found_dirs})
+        set +f  # Re-enable pathname expansion  
         IFS="$_old_ifs"
     fi
 
