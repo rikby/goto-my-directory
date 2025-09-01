@@ -89,6 +89,15 @@ goto my-project
 - If one directory named `my-project-folder` exists in your search path, you will be taken there directly.
 - If multiple directories match (e.g., `my-project-alpha`, `my-project-beta`), you will be prompted to select one.
 
+### Custom Search Path
+You can also specify a custom directory to search within:
+```sh
+goto project /opt/projects        # Search for "project" only in /opt/projects
+goto web /var/www                # Search for "web" directories in /var/www
+goto config ~/.config            # Search for "config" in your config directory
+```
+This is useful for one-off searches in specific locations without changing your global configuration.
+
 ### Plugin Features
 
 When navigating to directories, `goto` automatically:

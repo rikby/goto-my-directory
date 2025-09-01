@@ -47,7 +47,7 @@ goto() {
 goto - Quick directory navigation tool
 
 Usage:
-  goto [OPTIONS] <partial_directory_name>
+  goto [OPTIONS] <partial_directory_name> [custom_search_path]
 
 Options:
   -h, --help     Show this help message and exit
@@ -55,9 +55,16 @@ Options:
   --update-code, -u  Force update script even if it exists
   --config       Edit configuration file
 
+Arguments:
+  <partial_directory_name>  Directory name or pattern to search for
+  [custom_search_path]      Optional: Custom directory to search in
+
 Description:
   Navigate to directories by typing partial names. Searches configured
   directories and presents matches for selection.
+
+  You can optionally specify a custom search path as the second argument
+  to search within a specific directory instead of your configured paths.
 
 Configuration:
   The tool uses a config file at ~/.config/goto-my-directory/config.sh
@@ -73,9 +80,10 @@ Plugins:
   for examples and plugin development guide.
 
 Examples:
-  goto proj          # Search for directories matching "proj"
-  goto --config      # Edit configuration
-  goto --install     # Install to current shell
+  goto proj                    # Search for directories matching "proj"
+  goto proj /opt/projects      # Search for "proj" only in /opt/projects
+  goto --config               # Edit configuration
+  goto --install              # Install to current shell
 
 For more information, see README.md
 EOF
