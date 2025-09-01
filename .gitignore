@@ -3,3 +3,5 @@
 .vscode
 .DS_Store
 CLAUDE.local.md
+docs/create_ticket.md
+docs/manual_ticket_creation.md
