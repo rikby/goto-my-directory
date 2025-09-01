@@ -83,6 +83,31 @@ See [PLUGIN_DEVELOPMENT.md](PLUGIN_DEVELOPMENT.md) for comprehensive plugin deve
 - Plugin submission process for contributions
 - Testing procedures and checklists
 
+## Change Request (CR) System
+
+This project uses a structured Change Request system for tracking feature development and enhancements.
+
+### CR Directory Structure
+- **Configuration**: `.gt-config.toml` - CR system configuration
+- **Counter**: `.gt-next` - Next CR number tracking
+- **CRs**: `docs/CRs/GT-XXX-title.md` - Individual change request documents
+
+### CR Workflow for Development
+1. **Reference Existing CRs**: When implementing features, always reference the related CR document (e.g., GT-001)
+2. **Update CR Status**: Change status from "Proposed" to "In Progress" when starting implementation
+3. **Implementation Notes**: Add implementation details to the "Implementation Notes" section
+4. **Acceptance Criteria**: Use CR acceptance criteria as implementation checklist
+5. **Mark Complete**: Update status to "Completed" when all acceptance criteria are met
+
+### Current Active CRs
+- **GT-001**: Dynamic depth control with -N flags (-2, -5, -0 flags)
+
+### CR Integration with Code Changes
+- Reference CR numbers in commit messages when implementing features
+- Update CR status during implementation phases
+- Use CR acceptance criteria to validate implementation completeness
+- Document any deviations from CR specifications in implementation notes
+
 ## Development Notes
 
 - The script is written in POSIX shell for maximum compatibility

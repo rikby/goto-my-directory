@@ -1,7 +1,13 @@
-This is a shell script that provides a `goto` command to quickly navigate to directories within the `~/home` directory.
+This is a mature, feature-rich shell script that provides a `goto` command to quickly navigate to directories. Originally designed for the `~/home` directory, it now supports configurable search locations and multiple directories.
 
-It supports partial and case-insensitive matching. If there's a single match, it navigates directly. If there are multiple matches, it presents a numbered list for the user to choose from.
+**Key Features:**
+- **Smart Navigation**: Partial and case-insensitive directory matching
+- **Interactive Selection**: Numbered lists for multiple matches, with optional `fzf` integration for enhanced fuzzy searching
+- **Flexible Configuration**: Support for single or multiple search directories with configurable depth
+- **Plugin System**: Extensible architecture with automatic Python virtual environment activation
+- **Multiple Interfaces**: Both simple numbered selection and advanced `fzf` fuzzy finder interfaces
 
-There's also an optional `goto_fzf` command that uses `fzf` for a more interactive and fuzzy-search experience.
+**Development Approach:**
+The project uses a structured Change Request (CR) system for feature development, ensuring systematic enhancement and clear documentation of new capabilities. Current development focuses on dynamic search depth control and enhanced user experience features.
 
-The script includes an alias `gt` for `goto`.
+**Aliases**: Includes `gt` as a convenient shortcut for `goto`.

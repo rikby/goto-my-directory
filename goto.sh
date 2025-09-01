@@ -40,6 +40,8 @@ goto() {
         _GOTO_DIRS=("$_GOTO_DIR")
     fi
 
+    local_goto_dirs=${_GOTO_DIRS}
+
     show_help() {
         cat <<EOF
 goto - Quick directory navigation tool
@@ -91,25 +93,30 @@ EOF
             ;;
     esac
 
+    if [ -n "${2:-}" ]; then
+        if [ -d "${2:-}" ]; then
+            local_goto_dirs=("$(cd "${2}" && pwd)")
+        else
+           echo "Second argument is not a directory." > /dev/stderr
+           return ${__CODE_NO_DIR_FOUND}
+        fi
+    fi
+
     local _search_dir="${1:-}"
     echo "Looking for ${_search_dir}..."
     local _selected_dir=""
 
     __goto_find_dirs() {
-        find -L "${_GOTO_DIRS[@]}" -maxdepth "${_GOTO_MAX_DEPTH:-1}" \
+        find -L "${local_goto_dirs[@]}" -mindepth 1 -maxdepth "${_GOTO_MAX_DEPTH:-1}" \
             \( -type d -o -type l -exec test -d {} \; \) \
             -iname "*${_search_dir}*" -print 2>/dev/null | grep -v '^$'
     }
 
     _choice=0
     _matches=()
-    _temp_file=$(mktemp)
-    __goto_find_dirs "${_search_dir}" > "$_temp_file"
-    while IFS='' read -r line; do 
+    while IFS='' read -r line; do
         [ -n "$line" ] && _matches+=("${line}")
-    done < "$_temp_file"
-    rm -f "$_temp_file"
-
+    done < <(__goto_find_dirs "${_search_dir}")
 
     # __goto_base_* functions to match directory in basic approach
     # This function is used when fzf is not available or not preferred

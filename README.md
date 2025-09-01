@@ -89,9 +89,6 @@ goto my-project
 - If one directory named `my-project-folder` exists in your search path, you will be taken there directly.
 - If multiple directories match (e.g., `my-project-alpha`, `my-project-beta`), you will be prompted to select one.
 
-![fzf-demo](https://user-images.githubusercontent.com/junegunn/fzf/master/image/demo.gif)
-*(Demo shows general fzf usage, which this script integrates)*
-
 ### Plugin Features
 
 When navigating to directories, `goto` automatically:
@@ -101,9 +98,9 @@ When navigating to directories, `goto` automatically:
 
 Example with virtual environment:
 ```bash
-$ goto my-python-project
-Looking for my-python-project...
-Going to '/Users/username/projects/my-python-project'...
+$ goto python-project
+Looking for python-project...
+Going to '/Users/username/projects/my-super-python-project'...
 ✓ Python virtual environment activated successfully!
 (venv) $ 
 ```
@@ -223,3 +220,25 @@ __goto_plugin_project_info_after_cd() {
 ```
 
 For comprehensive plugin development documentation, see [PLUGIN_DEVELOPMENT.md](PLUGIN_DEVELOPMENT.md).
+
+## Contributing
+
+This project uses a structured Change Request (CR) system for tracking feature development and enhancements.
+
+### Development Process
+
+1. **Feature Requests**: New features and enhancements are documented as Change Requests in `docs/CRs/`
+2. **CR Format**: Each CR follows the format `GT-XXX-feature-name.md` with detailed specifications
+3. **Implementation**: Development follows CR acceptance criteria and technical requirements
+4. **Current CRs**: Check `docs/CRs/` directory for active change requests
+
+### Submitting Changes
+
+When contributing code changes:
+- Reference the related CR number in commit messages (e.g., "GT-001: Implement dynamic depth control")
+- Update CR status and implementation notes during development
+- Ensure all acceptance criteria are met before marking CR as complete
+
+### Current Development Focus
+
+- **GT-001**: Dynamic depth control with command-line flags (-2, -5, -0) for flexible search depth
