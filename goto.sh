@@ -8,11 +8,11 @@
 _GOTO_DIR="${_GOTO_DIR:-${HOME}/}"
 
 # How deep to search for directories
-_GOTO_MAX_DEPTH=1
+_GOTO_MAX_DEPTH=${_GOTO_MAX_DEPTH:-1}
 
 # Automatically select the directory if it's the only match, works only if fzf module is available
 # If fzf is not installed the script will a single directory automatically
-_GOTO_AUTOSELECT_SINGLE_RESULT=1
+_GOTO_AUTOSELECT_SINGLE_RESULT=${_GOTO_AUTOSELECT_SINGLE_RESULT:-1}
 
 _GOTO_CONFIG_DIR=${XDG_CONFIG_HOME:-${HOME}/.config}/goto-my-directory
 _GOTO_CONFIG_FILE=${_GOTO_CONFIG_DIR}/config.sh
@@ -34,13 +34,47 @@ goto() {
     readonly __CODE_ERROR=1
     readonly __CODE_SUCCESS=0
 
+    # Parse flags first
+    local test_mode=false
+    local verbose_mode=false
+    local args=()
+    
+    # Parse arguments to extract flags
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --test)
+                test_mode=true
+                shift
+                ;;
+            -v|--verbose)
+                verbose_mode=true
+                shift
+                ;;
+            -h|--help)
+                args+=("$1")
+                shift
+                ;;
+            --install|--update-code|-u|--config)
+                args+=("$1")
+                shift
+                ;;
+            *)
+                args+=("$1")
+                shift
+                ;;
+        esac
+    done
+    
+    # Restore positional parameters
+    set -- "${args[@]}"
+
     # Convert _GOTO_DIR to _GOTO_DIRS array for unified handling
     if [ -z "${_GOTO_DIRS+x}" ]; then
         # _GOTO_DIRS not set, use _GOTO_DIR
         _GOTO_DIRS=("$_GOTO_DIR")
     fi
 
-    local_goto_dirs=${_GOTO_DIRS}
+    local_goto_dirs=("${_GOTO_DIRS[@]}")
 
     show_help() {
         cat <<EOF
@@ -51,6 +85,8 @@ Usage:
 
 Options:
   -h, --help     Show this help message and exit
+  -v, --verbose  Show verbose output including all matches
+  --test         Test mode - list matches without navigating (for testing)
   --install      Install goto to your shell's RC file
   --update-code, -u  Force update script even if it exists
   --config       Edit configuration file
@@ -82,6 +118,8 @@ Plugins:
 Examples:
   goto proj                    # Search for directories matching "proj"
   goto proj /opt/projects      # Search for "proj" only in /opt/projects
+  goto --verbose proj          # Show all matches with verbose output
+  goto --test proj             # List matches without navigating (test mode)
   goto --config               # Edit configuration
   goto --install              # Install to current shell
 
@@ -111,7 +149,7 @@ EOF
     fi
 
     local _search_dir="${1:-}"
-    echo "Looking for ${_search_dir}..."
+    [ "$test_mode" = false ] && echo "Looking for ${_search_dir}..."
     local _selected_dir=""
 
     __goto_find_dirs() {
@@ -122,9 +160,54 @@ EOF
 
     _choice=0
     _matches=()
-    while IFS='' read -r line; do
-        [ -n "$line" ] && _matches+=("${line}")
-    done < <(__goto_find_dirs "${_search_dir}")
+    
+    # Use command substitution and newline separation
+    _found_dirs=$(__goto_find_dirs "${_search_dir}")
+    
+    # Convert to array using IFS
+    if [ -n "$_found_dirs" ]; then
+        # Save original IFS
+        _old_ifs="$IFS"
+        IFS=$'\n'
+        # shellcheck disable=SC2206
+        _matches=($_found_dirs)
+        # Restore IFS
+        IFS="$_old_ifs"
+    fi
+
+    # Handle test mode - just output matches and exit
+    if [ "$test_mode" = true ]; then
+        case ${#_matches[@]} in
+            0)
+                echo "No directories found matching '*${_search_dir}*'"
+                return 1
+                ;;
+            *)
+                echo "Found ${#_matches[@]} match(es):"
+                for match in "${_matches[@]}"; do
+                    echo "$match"
+                done
+                return 0
+                ;;
+        esac
+    fi
+
+    # Handle verbose mode - show all matches
+    if [ "$verbose_mode" = true ]; then
+        case ${#_matches[@]} in
+            0)
+                echo "No directories found matching '*${_search_dir}*'"
+                return 1
+                ;;
+            *)
+                echo "Found ${#_matches[@]} match(es):"
+                for ((i = 0; i < ${#_matches[@]}; i++)); do
+                    printf "%2d) %s\n" "$((i + 1))" "${_matches[i]}"
+                done
+                echo
+                ;;
+        esac
+    fi
 
     # __goto_base_* functions to match directory in basic approach
     # This function is used when fzf is not available or not preferred
@@ -252,16 +335,16 @@ __goto_current_file() {
 
 # Function to install goto into the current shell's resource file
 __goto_install() {
-    local rc_file="$1"
-    local force_copy="$2"
-    local readonly script_path="${_GOTO_CONFIG_DIR}/goto.sh"
+    rc_file="$1"
+    force_copy="$2"
+    readonly script_path="${_GOTO_CONFIG_DIR}/goto.sh"
 
     # Create the default config file if it doesn't exist
     __goto_create_default_config
 
     # Copy current script to config directory
     # TODO: Add versioning to detect when script needs updating
-    local current_script="$(__goto_current_file)"
+    current_script="$(__goto_current_file)"
     if [ "$current_script" != "$script_path" ] && [ -f "$current_script" ]; then
         if [ "$force_copy" = "--force-copy" ] || [ ! -f "$script_path" ]; then
             echo "✅ Copying script to ${script_path}..."
@@ -275,7 +358,7 @@ __goto_install() {
             }
             
             # Copy plugins directory if it exists
-            local source_plugins_dir="$(dirname "$current_script")/plugins"
+            source_plugins_dir="$(dirname "$current_script")/plugins"
             if [ -d "$source_plugins_dir" ]; then
                 echo "✅ Copying plugins to ${_GOTO_CONFIG_DIR}/plugins/..."
                 cp -r "$source_plugins_dir" "${_GOTO_CONFIG_DIR}/" || {
@@ -356,19 +439,22 @@ __goto_config() {
             echo "Current settings:" && cat "${_GOTO_CONFIG_FILE}"
 }
 
+__goto_hide_test_mode=1
 
 __goto_test() {
-    local __goto_color_green="\033[0;32m"
-    local __goto_color_reset="\033[0m"
-    echo -e "[ ${__goto_color_green}TESTING MODE ${__goto_color_reset} ]"
-    echo "For actual usage, run: "
-    echo "  $ source ./goto.sh"
-    echo "Or install it with:"
-    echo "  $ goto.sh --install"
-    echo "Or:"
-    echo "  $ goto.sh --install /path/to/your/rcfile"
-    echo "And use it:"
-    echo "  $ goto mydir"
+    __goto_color_green="\033[0;32m"
+    __goto_color_reset="\033[0m"
+    [ ${__goto_hide_test_mode:-0} -eq 1 ] && {
+        echo -e "[ ${__goto_color_green}TESTING MODE ${__goto_color_reset} ]"
+        echo "For actual usage, run: "
+        echo "  $ source ./goto.sh"
+        echo "Or install it with:"
+        echo "  $ goto.sh --install"
+        echo "Or:"
+        echo "  $ goto.sh --install /path/to/your/rcfile"
+        echo "And use it:"
+        echo "  $ goto mydir"
+    }
     goto "${@:-}"
 }
 
@@ -389,11 +475,14 @@ case "${1:-}" in
 esac
 
 # If not installing or configuring, source the config file for the goto function.
-source "${_GOTO_CONFIG_FILE}" 2>/dev/null || {
-    echo "Config file not found at ${_GOTO_CONFIG_FILE}. Please run 'goto.sh --config' to create it." >&2
-    # Exit gracefully whether sourced or executed
-    return 1 2>/dev/null || exit 1
-}
+# But preserve any pre-set test environment variables
+if [ "${GOTO_TEST_MODE:-}" != "1" ]; then
+    source "${_GOTO_CONFIG_FILE}" 2>/dev/null || {
+        echo "Config file not found at ${_GOTO_CONFIG_FILE}. Please run 'goto.sh --config' to create it." >&2
+        # Exit gracefully whether sourced or executed
+        return 1 2>/dev/null || exit 1
+    }
+fi
 
 # Initialize plugin hooks list
 _GOTO_PLUGIN_HOOKS=""
