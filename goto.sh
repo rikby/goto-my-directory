@@ -38,6 +38,8 @@ goto() {
     local test_mode=false
     local verbose_mode=false
     local args=()
+
+    _GOTO_VERSION=0.2.9
     
     # Parse arguments to extract flags
     while [[ $# -gt 0 ]]; do
@@ -57,6 +59,10 @@ goto() {
             --install|--update-code|-u|--config)
                 args+=("$1")
                 shift
+                ;;
+            --version|-V)
+                shift
+                echo ${_GOTO_VERSION}
                 ;;
             *)
                 args+=("$1")
