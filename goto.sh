@@ -92,6 +92,7 @@ Usage:
 
 Options:
   -h, --help     Show this help message and exit
+  -V, --version  Show version information
   -v, --verbose  Show verbose output including all matches
   --test         Test mode - list matches without navigating (for testing)
   --install      Install goto to your shell's RC file

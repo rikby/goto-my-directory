@@ -89,6 +89,15 @@ goto my-project
 - If one directory named `my-project-folder` exists in your search path, you will be taken there directly.
 - If multiple directories match (e.g., `my-project-alpha`, `my-project-beta`), you will be prompted to select one.
 
+### Command Options
+
+```sh
+goto --help          # Show help message
+goto --version       # Show version information  
+goto --verbose proj  # Show all matches with verbose output
+goto --config        # Edit configuration file
+```
+
 ### Custom Search Path
 You can also specify a custom directory to search within:
 ```sh
