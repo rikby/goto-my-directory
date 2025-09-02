@@ -116,3 +116,4 @@ This project uses a structured Change Request system for tracking feature develo
 - Supports multiple shell types (bash, zsh, fish, ksh, dash)
 - Error codes are defined as constants for consistent error handling
 - Plugin system uses whitespace-safe function name handling
+- Use @release.sh for adding new release tags to git repository. Target code has to be commited before.
