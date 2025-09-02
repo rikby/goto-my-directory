@@ -10,7 +10,8 @@
 set -euo pipefail
 
 # Script directory detection - works regardless of how script is called
-readonly __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC2155
+readonly __dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 readonly GOTO_SCRIPT="${__dir}/goto.sh"
 
 # Exit codes
@@ -32,31 +33,41 @@ Creates a new release by:
 4. Creating and pushing a git tag
 
 Arguments:
-  version    Version number in semantic versioning format (e.g., 1.2.3, 0.1.0)
+  version    Version number in semantic versioning format (e.g., 1.2.3, v1.2.3, 0.1.0)
+             Accepts version with or without 'v' prefix, but git tag will always use 'v' prefix
 
 Examples:
-  $0 0.3.0
-  $0 1.0.0
-  $0 2.1.3
+  $0 0.3.0     # Creates tag v0.3.0
+  $0 v1.0.0    # Creates tag v1.0.0
+  $0 2.1.3     # Creates tag v2.1.3
 
 EOF
 }
 
-# Function to validate semantic version format
-validate_version() {
-    local version="$1"
+# Function to normalize and validate version format
+# Accepts version with or without 'v' prefix, returns clean version number
+normalize_version() {
+    local input_version="$1"
+    local clean_version
+    
+    # Remove 'v' prefix if present
+    clean_version="${input_version#v}"
     
     # Check if version matches semantic versioning pattern (X.Y.Z or X.Y.Z-suffix)
-    if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
-        echo "Error: Invalid version format. Expected semantic versioning (e.g., 1.2.3)" >&2
+    if [[ ! $clean_version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+        echo "Error: Invalid version format. Expected semantic versioning (e.g., 1.2.3 or v1.2.3)" >&2
         return $EXIT_INVALID_VERSION
     fi
+    
+    echo "$clean_version"
 }
 
 # Function to check if git working directory is clean
 check_git_status() {
     if ! git diff-index --quiet HEAD --; then
         echo "Error: Working directory is not clean. Please commit or stash your changes first." >&2
+        echo "Uncommitted changes:" >&2
+        git status --porcelain >&2
         return $EXIT_GIT_ERROR
     fi
 }
@@ -69,7 +80,7 @@ update_version() {
     # Create backup of original file
     cp "$GOTO_SCRIPT" "$backup_file"
     
-    # Update version using sed with proper escaping
+    # Update version using sed with proper escaping (4 spaces indentation)
     if ! sed -i.tmp "s/^    _GOTO_VERSION=.*$/    _GOTO_VERSION=${version}/" "$GOTO_SCRIPT"; then
         echo "Error: Failed to update version in $GOTO_SCRIPT" >&2
         # Restore backup
@@ -134,10 +145,13 @@ main() {
         return $EXIT_SUCCESS
     fi
     
-    local version="$1"
+    local input_version="$1"
+    local version
     
-    # Validate inputs
-    validate_version "$version" || return $?
+    # Normalize and validate version format
+    if ! version="$(normalize_version "$input_version")"; then
+        return $EXIT_INVALID_VERSION
+    fi
     
     # Check if goto.sh exists
     if [[ ! -f "$GOTO_SCRIPT" ]]; then
@@ -154,12 +168,24 @@ main() {
     # Check if working directory is clean
     check_git_status || return $?
     
+    # Check if tag already exists
+    if git rev-parse --verify "v${version}" >/dev/null 2>&1; then
+        echo "Error: Git tag v${version} already exists" >&2
+        return $EXIT_GIT_ERROR
+    fi
+    
+    # Get current version from goto.sh
+    local current_version
+    if current_version=$(grep "^    _GOTO_VERSION=" "$GOTO_SCRIPT" | cut -d= -f2); then
+        echo "Current version: $current_version"
+    fi
+    
     # Confirm the release
-    echo "About to release version: $version"
+    echo "About to release version: $version (input: $input_version)"
     echo "This will:"
-    echo "  1. Update _GOTO_VERSION in $GOTO_SCRIPT"
+    echo "  1. Update _GOTO_VERSION to '$version' in $GOTO_SCRIPT"
     echo "  2. Create a git commit"
-    echo "  3. Create a git tag v${version}"
+    echo "  3. Create a git tag 'v${version}'"
     echo
     read -p "Continue? (y/N): " -r confirm
     
@@ -174,6 +200,8 @@ main() {
     
     echo
     echo "Successfully released version: $version"
+    echo "Git tag created: v${version}"
+    echo ""
     echo "To push to remote repository, run:"
     echo "  git push origin main"
     echo "  git push origin v${version}"
@@ -182,6 +210,6 @@ main() {
 }
 
 # Execute main function if script is run directly (not sourced)
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [[ "${BASH_SOURCE[0]:-$0}" == "${0}" ]]; then
     main "$@"
 fi
