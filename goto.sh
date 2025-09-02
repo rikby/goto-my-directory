@@ -168,23 +168,14 @@ EOF
     _choice=0
     _matches=()
     
-    # Use a portable method to populate the array
-    _matches=()
-    __goto_find_dirs "${_search_dir}" | while IFS= read -r line; do
-        [ -n "$line" ] && _matches+=("$line")
-    done
-    
-    # The above creates a subshell, so we need to repopulate _matches
     # Use a more portable approach with command substitution
     _found_dirs=$(__goto_find_dirs "${_search_dir}")
     if [ -n "$_found_dirs" ]; then
-        # Use printf to handle newlines properly in both bash and zsh
-        _old_ifs="$IFS"
-        IFS=$'\n'
-        set -f  # Disable pathname expansion
-        _matches=(${_found_dirs})
-        set +f  # Re-enable pathname expansion  
-        IFS="$_old_ifs"
+        # Use a while read loop to properly populate the array
+        # This works correctly in both bash and zsh
+        while IFS= read -r dir; do
+            [ -n "$dir" ] && _matches+=("$dir")
+        done <<< "$_found_dirs"
     fi
 
     # Handle test mode - just output matches and exit
