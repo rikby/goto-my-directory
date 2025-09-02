@@ -39,7 +39,7 @@ goto() {
     local verbose_mode=false
     local args=()
 
-    _GOTO_VERSION=0.2.9
+    _GOTO_VERSION=0.3.1
     
     # Parse arguments to extract flags
     while [[ $# -gt 0 ]]; do
@@ -63,6 +63,7 @@ goto() {
             --version|-V)
                 shift
                 echo ${_GOTO_VERSION}
+                return
                 ;;
             *)
                 args+=("$1")
