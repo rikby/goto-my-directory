@@ -2,8 +2,35 @@
 
 `goto` is a command-line tool to quickly navigate to your most used directories. It allows you to jump to a directory by typing only a part of its name. It's smart, fast, and includes an interactive selector for when there are multiple matches.
 
-<img width="785" height="144" alt="image" src="https://github.com/user-attachments/assets/8b96f33e-dd0f-45ee-aac4-72a9355f0e6f" />
+```shell
+ $ cat ~/.config/goto-my-directory/config.sh
+# The top-level directory to search for your projects
+_GOTO_DIRS=(${HOME}/home ${HOME}/.config)
 
+# How deep to search for directories
+_GOTO_MAX_DEPTH=1
+
+# Automatically select the directory if it's the only match
+_GOTO_AUTOSELECT_SINGLE_RESULT=1
+```
+```shell
+ $ goto goto
+
+Select directory:                                               ╭─────────────────────────────────────────────────────────────╮
+  2/2 ───────────────────────────────────────────────────────── │ total 224                                              1/25││
+▌ /Users/me/home/goto_dir                                       │ drwxr-xr-x@ 24 kirby  staff    768 Sep 14 13:06 .          ││
+  /Users/me/.config/goto-my-directory                           │ drwxr-xr-x  74 kirby  staff   2368 Sep 10 21:22 ..         ││
+                                                                │ drwxr-xr-x@  3 kirby  staff     96 Sep  2 16:01 .claude    ││
+                                                                │ -rw-r--r--@  1 kirby  staff   8196 Sep  7 14:59 .DS_Store  ││
+                                                                │ drwxr-xr-x@ 14 kirby  staff    448 Sep 14 13:07 .git        │
+                                                                │ -rw-r--r--@  1 kirby  staff    120 Sep  1 17:21 .gitignore  │
+                                                                │ drwxr-xr-x@ 11 kirby  staff    352 Sep  2 16:59 .idea       │
+                                                                │ -rw-r--r--@  1 kirby  staff    333 Sep  9 20:58 .mdt-config │
+                                                                │ -rw-r--r--@  1 kirby  staff      1 Sep  7 15:01 .mdt-next   │
+                                                                │ drwxr-xr-x@  3 kirby  staff     96 Aug  1 21:36 .vscode     │
+                                                                │ -rw-r--r--@  1 kirby  staff   1102 Sep  1 15:37 ABOUT.md    │
+                                                                ╰─────────────────────────────────────────────────────────────╯
+```
 
 ## Features
 
