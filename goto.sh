@@ -39,7 +39,7 @@ goto() {
     local verbose_mode=false
     local args=()
 
-    _GOTO_VERSION=0.3.2
+    _GOTO_VERSION=0.4.0
     
     # Parse arguments to extract flags
     while [[ $# -gt 0 ]]; do
