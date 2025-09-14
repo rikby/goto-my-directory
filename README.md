@@ -2,6 +2,9 @@
 
 `goto` is a command-line tool to quickly navigate to your most used directories. It allows you to jump to a directory by typing only a part of its name. It's smart, fast, and includes an interactive selector for when there are multiple matches.
 
+<img width="785" height="144" alt="image" src="https://github.com/user-attachments/assets/8b96f33e-dd0f-45ee-aac4-72a9355f0e6f" />
+
+
 ## Features
 
 - **Partial Matching**: Find directories by typing just a piece of their name.
