@@ -1,0 +1,10 @@
+[project]
+name = "goto command"
+code = "GT"
+path = "docs/CRs"
+startNumber = 1
+counterFile = ".mdt-next"
+description = "goto my directory command"
+repository = "https://github.com/rikby/goto-my-directory/"
+
+document_paths = ["docs", "plugins", "test", "ABOUT.md", "CLAUDE.md", "PLUGIN_DEVELOPMENT.md", "README.md", "CLAUDE.local.md"]
