@@ -36,6 +36,16 @@ Select directory:                                               ╭────�
                                                                 ╰─────────────────────────────────────────────────────────────╯
 ```
 
+## Table of Contents
+
+- [Features](#features)
+- [Dependencies](#dependencies)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Plugin Development](#plugin-development)
+- [Contributing](#contributing)
+
 ## Features
 
 - **Partial Matching**: Find directories by typing just a piece of their name.
