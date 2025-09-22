@@ -13,6 +13,10 @@ _GOTO_MAX_DEPTH=1
 # Automatically select the directory if it's the only match
 _GOTO_AUTOSELECT_SINGLE_RESULT=1
 ```
+So, for this configuration, the tool searches for "*goto*" in paths:
+- `~/home/`
+- `~/.config/`
+
 ```shell
  $ goto goto
 
